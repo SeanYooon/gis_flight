@@ -12,7 +12,7 @@ jobs:
       - name: Checkout repo
         uses: actions/checkout@v3
         with:
-          fetch-depth: 0   # Fetch full history so pull/rebase works
+          fetch-depth: 0
 
       - name: Set up Python
         uses: actions/setup-python@v4
@@ -31,7 +31,8 @@ jobs:
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git pull origin main --strategy=ours
           git add opensky_flights.geojson
           git commit -m "Update GeoJSON" || echo "No changes to commit"
-          git pull origin main --rebase
           git push
+
