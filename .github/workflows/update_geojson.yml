@@ -2,8 +2,8 @@ name: Update OpenSky Flights
 
 on:
   schedule:
-    - cron: "*/30 * * * *"  # Every 30 minutes
-  workflow_dispatch:        # Allows manual run
+    - cron: "*/30 * * * *"
+  workflow_dispatch:
 
 jobs:
   update:
