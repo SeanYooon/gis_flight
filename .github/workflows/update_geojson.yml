@@ -2,7 +2,7 @@ name: Update OpenSky Flights
 
 on:
   schedule:
-    - cron: "*/30 * * * *"
+    - cron: "*/30 * * * *"  # Every 30 minutes
   workflow_dispatch:
 
 jobs:
@@ -27,4 +27,11 @@ jobs:
       - name: Run script
         run: python opensky_flights.py
 
-      # ... (rest of your steps)
+      - name: Commit and push GeoJSON
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git pull origin main --strategy=ours
+          git add flight_points.json flight_trajectories.geojson
+          git commit -m "Update flight data" || echo "No changes to commit"
+          git push
