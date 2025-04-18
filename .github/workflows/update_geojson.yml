@@ -22,17 +22,9 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          python -m pip install requests
+          pip install -r requirements.txt
 
       - name: Run script
         run: python opensky_flights.py
 
-      - name: Commit and push GeoJSON
-        run: |
-          git config --global user.name "github-actions[bot]"
-          git config --global user.email "github-actions[bot]@users.noreply.github.com"
-          git pull origin main --strategy=ours
-          git add opensky_flights.geojson
-          git commit -m "Update GeoJSON" || echo "No changes to commit"
-          git push
-
+      # ... (rest of your steps)
