@@ -2,8 +2,8 @@ name: Update OpenSky Flights
 
 on:
   schedule:
-    - cron: "*/30 * * * *"  # Every 30 minutes
-  workflow_dispatch:       # allows manual run
+    - cron: "*/30 * * * *"
+  workflow_dispatch:
 
 jobs:
   update:
@@ -11,23 +11,28 @@ jobs:
     steps:
       - name: Checkout repo
         uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
 
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
-          python-version: "3.10"
+          python-version: '3.x'
 
       - name: Install dependencies
         run: |
-          pip install requests
+          python -m pip install --upgrade pip
+          python -m pip install requests
 
       - name: Run script
-        run: python opensky_to_geojson.py
+        run: python opensky_flights.py
 
-      - name: Commit and push changes
+      - name: Commit and push GeoJSON
         run: |
-          git config user.name "github-actions"
-          git config user.email "github-actions@github.com"
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git pull origin main --strategy=ours
           git add opensky_flights.geojson
-          git commit -m "Auto-update GeoJSON [skip ci]" || echo "No changes to commit"
+          git commit -m "Update GeoJSON" || echo "No changes to commit"
           git push
+
