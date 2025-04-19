@@ -4,8 +4,7 @@ import os
 from datetime import datetime
 import pandas as pd
 import geopandas as gpd
-from shapely.geometry import LineString
-
+from shapely.geometry import LineString, mapping
 
 # Step 1: Fetch live aircraft data from OpenSky API
 print("Fetching live aircraft data...")
@@ -45,22 +44,29 @@ with open(filename, "w") as f:
     json.dump(features, f, indent=2)
 
 # Step 5: Create trajectories (lines) for each aircraft
-# Load the accumulated point data into a DataFrame
 df = pd.DataFrame(features)
 trajectories = []
 for icao24, group in df.groupby("icao24"):
-    group = group.sort_values("time_position")  # Sort by time
-    if len(group) > 1:  # Only create a line if there are at least 2 points
+    group = group.sort_values("time_position")
+    if len(group) > 1:
         coords = list(zip(group["lon"], group["lat"]))
         traj = LineString(coords)
         trajectories.append({"icao24": icao24, "geometry": traj})
 
-# Step 6: Save the trajectories as a GeoJSON file
+# Step 6: Save the trajectories as a GeoJSON file (always create a valid file)
+traj_filename = "flight_trajectories.geojson"
 if trajectories:
     gdf = gpd.GeoDataFrame(trajectories, crs="EPSG:4326")
-    gdf.to_file("flight_trajectories.geojson", driver="GeoJSON")
-    print("Trajectories saved as: flight_trajectories.geojson")
+    gdf.to_file(traj_filename, driver="GeoJSON")
+    print(f"Trajectories saved as: {traj_filename}")
 else:
-    print("No trajectories to save (not enough data yet)")
+    # Create an empty valid GeoJSON FeatureCollection
+    empty_geojson = {
+        "type": "FeatureCollection",
+        "features": []
+    }
+    with open(traj_filename, "w") as f:
+        json.dump(empty_geojson, f, indent=2)
+    print(f"No trajectories to save yet. Created empty {traj_filename}.")
 
 print(f"Appended {len(new_features)} new features. Total features: {len(features)}")
