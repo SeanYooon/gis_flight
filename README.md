@@ -1,3 +1,38 @@
+# Live Aircraft GIS Visualization Project
+
+## Overview
+
+This project automates the collection, processing, and visualization of live aircraft position data using the OpenSky Network API. Data is automatically fetched every 30 minutes, converted to time-enabled GeoJSON, and visualized in ArcGIS Online to showcase both real-time and historical flight movement patterns.
+
+## Features
+
+- **Automated Real-Time Data Collection:** Uses Python and GitHub Actions to fetch global aircraft position data every 30 minutes.
+- **Data Transformation:** Cleans and converts API data to GeoJSON, retaining only the past 24 hours to manage file size and relevance.
+- **GIS-Ready Outputs:** Produces two GeoJSON files:
+  - `flight_points.geojson`: All flight points in the last 24 hours (time-enabled for animation).
+  - `flight_trajectories.geojson`: Trajectory lines for each aircraft’s movement in the last 24 hours.
+- **Interactive Web Mapping:** Data is published and visualized in ArcGIS Online featuring:
+  - **Point layers** with pop-up info (callsign, country, altitude, etc.)
+  - **Heat maps** of flight density (hotspots)
+  - **Flight trajectories** as interactive line layers
+  - **Time slider** for animated temporal exploration
+
+## How It Works
+
+1. **Data Fetching:** The Python script connects to the OpenSky Network API to gather state vectors (positions) for all visible aircraft.
+2. **Data Processing:** Each run filters and keeps only the last 24 hours of data to ensure manageable file sizes.
+3. **GeoJSON Export:** Both point and trajectory data are exported in GeoJSON format.
+4. **Automation:** GitHub Actions runs the script, updates the files, and pushes them to the repository automatically.
+5. **Web Mapping:** The resulting `flight_points.geojson` can be published as a hosted feature layer in ArcGIS Online for full time-enabled visualization with a timeline slider!
+
+## Usage
+
+### Local
+
+1. Clone this repository.
+2. Install dependencies:
+
+
 ## Cartographic Design: Scale-Dependent Visualization
 
 To maximize both overview and detail, this project applies **scale-dependent layer visibility** (visibility ranges) in ArcGIS Online:
