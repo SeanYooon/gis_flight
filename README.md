@@ -63,4 +63,4 @@ This is achieved in ArcGIS Online by setting each layer’s “Set visibility ra
 
 ---
 
-[View the interactive time-enabled map on ArcGIS Online](https://simonfraseru.maps.arcgis.com/apps/mapviewer/index.html?webmap=684cb8e26a814139ad05975ef523cbf2)
+[View the interactive time-enabled map on ArcGIS Online]([https://simonfraseru.maps.arcgis.com/apps/mapviewer/index.html?webmap=684cb8e26a814139ad05975ef523cbf2](https://services.arcgis.com/E5vyYQKPMX5X3R3H/arcgis/rest/services/timeline/FeatureServer))
