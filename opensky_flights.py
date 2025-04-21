@@ -33,31 +33,50 @@ for state in data.get("states", []):
         })
 
 # Step 3: Load and filter existing data
-filename = "flight_points.json"
+input_filename = "flight_points.geojson"
 all_features = []
 
-if os.path.exists(filename):
-    with open(filename, "r") as f:
-        try:
-            # Load existing features and filter by time
-            existing_features = json.load(f)
-            for feature in existing_features + new_features:
-                # Parse timestamp with error handling
-                try:
-                    feature_time = datetime.fromisoformat(feature.get("timestamp_iso"))
-                except (ValueError, TypeError):
-                    continue
-                
-                if feature_time >= cutoff_time:
-                    all_features.append(feature)
-        except json.JSONDecodeError:
-            all_features = new_features
+if os.path.exists(input_filename):
+    with open(input_filename, "r") as f:
+        existing_data = json.load(f)
+        existing_features = existing_data["features"]
+        
+        # Extract properties from GeoJSON features
+        existing_records = [
+            {**f["properties"], "lon": f["geometry"]["coordinates"][0], "lat": f["geometry"]["coordinates"][1]}
+            for f in existing_features
+        ]
 else:
-    all_features = new_features
+    existing_records = []
 
-# Step 4: Save filtered data
-with open(filename, "w") as f:
-    json.dump(all_features, f, indent=2)
+# Combine existing and new features
+combined_features = existing_records + new_features
+
+# Filter by time
+all_features = [
+    f for f in combined_features
+    if datetime.fromisoformat(f["timestamp_iso"]) >= cutoff_time
+]
+
+# Step 4: Save as GeoJSON
+geojson_data = {
+    "type": "FeatureCollection",
+    "features": [
+        {
+            "type": "Feature",
+            "geometry": {
+                "type": "Point",
+                "coordinates": [f["lon"], f["lat"]]
+            },
+            "properties": {k: v for k, v in f.items() if k not in ["lon", "lat"]}
+        }
+        for f in all_features
+    ]
+}
+
+with open(input_filename, "w") as f:
+    json.dump(geojson_data, f, indent=2)
+print(f"Saved {len(all_features)} features to {input_filename}")
 
 # Step 5: Create trajectories (keep only last 24 hours)
 df = pd.DataFrame(all_features)
@@ -82,5 +101,3 @@ else:
     with open(traj_filename, "w") as f:
         json.dump(empty_geojson, f, indent=2)
     print("No trajectories to save yet")
-
-print(f"Total features kept: {len(all_features)} (24-hour window)")
