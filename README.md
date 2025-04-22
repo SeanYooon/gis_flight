@@ -63,4 +63,5 @@ This is achieved in ArcGIS Online by setting each layer’s “Set visibility ra
 
 ---
 
+🛑 **If you get a "403 Forbidden" error when clicking, copy and paste the link into a new browser tab or window.**
 [View the interactive time-enabled map on ArcGIS Online](https://simonfraseru.maps.arcgis.com/apps/mapviewer/index.html?webmap=684cb8e26a814139ad05975ef523cbf2)
