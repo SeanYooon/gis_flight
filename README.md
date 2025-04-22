@@ -67,3 +67,12 @@ This is achieved in ArcGIS Online by setting each layer’s “Set visibility ra
 
 
 [View the interactive time-enabled map on ArcGIS Online](https://simonfraseru.maps.arcgis.com/apps/mapviewer/index.html?webmap=684cb8e26a814139ad05975ef523cbf2)
+
+## Example Visualizations
+
+**Aircraft Trajectories and Points (Zoomed Out)**
+![Flight Trajectories](screenshots/Screenshot%202025-04-21%20at%205.07.15%E2%80%AFPM.png)
+
+**Flight Density Heatmap**
+![Flight Heatmap](screenshots/Screenshot%202025-04-21%20at%205.07.29%E2%80%AFPM.png)
+
