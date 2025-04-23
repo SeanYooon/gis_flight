@@ -41,3 +41,19 @@ Screenshots of the resulting maps are stored in the **`screenshots`** folder for
 
 - The GitHub Actions workflow (`.github/workflows/update_geojson.yml`) automates running the Python script and updating the GeoJSON files.
 - You can also run the script locally:
+
+
+
+## Key Files and Folders
+
+| File/Folder                       | Purpose                                                      |
+|-----------------------------------|--------------------------------------------------------------|
+| flight_points.geojson             | 24-hour point data, time-enabled for ArcGIS time slider      |
+| flight_trajectories.geojson       | 24-hour aircraft paths for trajectory visualization          |
+| screenshots/                      | PNG screenshots of your web maps for documentation/demo      |
+| opensky_flights.py                | Python script for data fetching and processing               |
+| .github/workflows/update_geojson.yml | Automated data update workflow (GitHub Actions)           |
+
+---
+
+*For more details, see comments in the code and in this README. This project is designed for reproducible GIS visualization and is ideal for demos, portfolios, or spatial analysis presentations.*
