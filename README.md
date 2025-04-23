@@ -1,78 +1,75 @@
-# Live Aircraft GIS Visualization Project
+# Aircraft GIS Visualization Project
 
 ## Overview
 
-This project automates the collection, processing, and visualization of live aircraft position data using the OpenSky Network API. Data is automatically fetched every 30 minutes, converted to time-enabled GeoJSON, and visualized in ArcGIS Online to showcase both real-time and historical flight movement patterns.
+This project demonstrates the collection, processing, and visualization of global flight position data from the OpenSky Network API. The workflow accumulates 24 hours of aircraft position data, prepares time-enabled GIS layers, and provides clear visualizations using ArcGIS Online — all without requiring a live data feed or paid cloud automation.
 
 ## Features
 
-- **Automated Real-Time Data Collection:** Uses Python and GitHub Actions to fetch global aircraft position data every 30 minutes.
-- **Data Transformation:** Cleans and converts API data to GeoJSON, retaining only the past 24 hours to manage file size and relevance.
-- **GIS-Ready Outputs:** Produces two GeoJSON files:
-  - `flight_points.geojson`: All flight points in the last 24 hours (time-enabled for animation).
-  - `flight_trajectories.geojson`: Trajectory lines for each aircraft’s movement in the last 24 hours.
-- **Interactive Web Mapping:** Data is published and visualized in ArcGIS Online featuring:
-  - **Point layers** with pop-up info (callsign, country, altitude, etc.)
-  - **Heat maps** of flight density (hotspots)
-  - **Flight trajectories** as interactive line layers
-  - **Time slider** for animated temporal exploration
+- **24-Hour Rolling Dataset:**  
+  The system accumulates and retains only the last 24 hours of aircraft positions, ensuring a manageable file size and showing a full day of flight activity for analysis and animation.
 
-## How It Works
+- **Time-Enabled and Trajectory Layers:**  
+  - `24h_flight_points.geojson`: Aircraft positions, each with a timestamp, suitable for time slider animation and heat map creation.
+  - `24h_flight_trajectories.geojson`: Trajectory lines for each aircraft, representing movement over the past day.
 
-1. **Data Fetching:** The Python script connects to the OpenSky Network API to gather state vectors (positions) for all visible aircraft.
-2. **Data Processing:** Each run filters and keeps only the last 24 hours of data to ensure manageable file sizes.
-3. **GeoJSON Export:** Both point and trajectory data are exported in GeoJSON format.
-4. **Automation:** GitHub Actions runs the script, updates the files, and pushes them to the repository automatically.
-5. **Web Mapping:** The resulting `flight_points.geojson` can be published as a hosted feature layer in ArcGIS Online for full time-enabled visualization with a timeline slider!
+- **Interactive GIS Visualization:**  
+  - Upload the GeoJSON files as hosted feature layers in ArcGIS Online.
+  - Enable the time slider on the points layer, allowing users to animate and explore movements through the 24-hour window.
+  - Style the map to show:
+    - **Heatmaps** when zoomed out (for regional/global density)
+    - **Points and trajectories** when zoomed in (for detail)
+    - **Pop-ups** with flight details for each point when clicked
 
-## Usage
+## Workflow
 
-### Local
-
-1. Clone this repository.
-2. Install dependencies:
-
-
-## Cartographic Design: Scale-Dependent Visualization
-
-To maximize both overview and detail, this project applies **scale-dependent layer visibility** (visibility ranges) in ArcGIS Online:
-
-- **Heat Map:**  
-  - Displays only at small scales (when zoomed out, e.g., country or continent level) to reveal broad flight density patterns.
-- **Points and Trajectories:**  
-  - Become visible at larger scales (when zoomed in to region/city/airport level), showing individual aircraft locations and their paths with high granularity.
-
-**How It Works in the Web Map:**
-- When first opened or viewed at a regional or global extent, only the heatmap is visible, making it easy to spot areas of high air traffic.
-- As the user zooms in, the map automatically reveals the exact aircraft points and their trajectories, providing detailed, interactive information about specific flights.
-
-**Implementation:**  
-This is achieved in ArcGIS Online by setting each layer’s “Set visibility range” property—ensuring optimal performance and a clear, uncluttered map at every zoom level.
-
-> _This design mimics professional air traffic analysis dashboards: patterns at a glance, details on demand._
-
----
-
-## Example Cartographic Workflow
-
-1. **Upload all data layers** (heat map, points, trajectories) to your ArcGIS Online web map.
-2. For each layer, use the three dots (**...**) > **Set visibility range**.
-   - **Heat map:** set a minimum scale (e.g., only visible at 1:3,000,000 and smaller).
-   - **Points and trajectories:** set a maximum scale (e.g., only visible at 1:1,000,000 and larger).
-3. Preview your map, and adjust visibility ranges for desired effect and clarity.
-
----
-
-🛑 **If you get a "403 Forbidden" error when clicking, copy and paste the link into a new browser tab or window.**
-
-
-[View the interactive time-enabled map on ArcGIS Online](https://simonfraseru.maps.arcgis.com/apps/mapviewer/index.html?webmap=684cb8e26a814139ad05975ef523cbf2)
+1. **Data Collection (Automated Script):**
+   - Python script collects new aircraft data every 30 minutes and appends it to the cumulative 24-hour dataset.
+   - Results are saved as GeoJSON files: `24h_flight_points.geojson` (points) and `24h_flight_trajectories.geojson` (lines).
+2. **Manual Demonstration Workflow:**  
+   - Download the latest GeoJSON files from the GitHub repository.
+   - Upload as hosted feature layers in ArcGIS Online.
+   - Enable time on the points layer (using `timestamp_iso`).
+   - Configure symbology/visibility for heatmaps and trajectories.
 
 ## Example Visualizations
 
-**Aircraft Trajectories and Points (Zoomed Out)**
-![Flight Trajectories](screenshots/Screenshot%202025-04-21%20at%205.07.15%E2%80%AFPM.png)
+| Heatmap (Zoomed Out)                                  | Points & Trajectories (Zoomed In)          |
+|-------------------------------------------------------|--------------------------------------------|
+| ![](screenshots/Screenshot%202025-04-21%20at%205.07.29%E2%80%AFPM.png) | ![](screenshots/Screenshot%202025-04-21%20at%205.07.15%E2%80%AFPM.png) |
 
-**Flight Density Heatmap**
-![Flight Heatmap](screenshots/Screenshot%202025-04-21%20at%205.07.29%E2%80%AFPM.png)
+> [View the interactive time-enabled map on ArcGIS Online](https://www.arcgis.com/home/webmap/viewer.html?webmap=684cb8e26a814139ad05975ef523cbf2)  
+> *(If you receive a 403 error, copy and paste this link into a new browser tab.)*
 
+## How to Reproduce or Demonstrate
+
+1. Clone this repository and let the GitHub Actions workflow run for at least 24 hours to accumulate data.
+2. Download the `24h_flight_points.geojson` and `24h_flight_trajectories.geojson` files.
+3. In ArcGIS Online:
+    - Upload as hosted feature layers.
+    - Enable time using the `timestamp_iso` field on the points layer.
+    - Style layers for heatmap, points, and trajectories, using scale-dependent visibility.
+    - Use the time slider for animation.
+
+## Key Skills Demonstrated
+
+- Python scripting, REST API usage, and workflow automation
+- Geospatial data processing and time-enabled GIS analysis
+- Data visualization with ArcGIS Online (heatmap, time slider, trajectories)
+- Professional cartographic design with scale-dependent symbology
+
+## Notes
+
+- **No live feed required:** The demo uses a rolling 24-hour dataset, updated automatically by code and manually uploaded for each demonstration.
+- **ArcGIS Online limitation:** Time slider animation is only available on hosted feature layers, which do not auto-update from external URLs (see README for details).
+- **For best results:** Update the hosted feature layers with new datasets before each presentation/demo.
+
+## References
+
+- [OpenSky Network API](https://opensky-network.org/apidoc/rest.html)
+- [ArcGIS Online Feature Layer Documentation](https://doc.arcgis.com/en/arcgis-online/)
+- [GeoJSON Format](https://geojson.org/)
+
+---
+
+*Created for GIS portfolio, analysis, and educational demonstration.*
