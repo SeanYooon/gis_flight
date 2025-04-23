@@ -6,99 +6,94 @@ import pandas as pd
 import geopandas as gpd
 from shapely.geometry import LineString
 
-# Step 1: Fetch live aircraft data from OpenSky API
-print("Fetching live aircraft data...")
+# SETTINGS
+WINDOW_HOURS = 12  # Rolling window duration
+RUN_INTERVAL_MIN = 30  # Script runs every 30 min
+
+now = datetime.utcnow()
+cutoff_time = now - timedelta(hours=WINDOW_HOURS)
+points_filename = "flight_points.geojson"
+traj_filename = "flight_trajectories.geojson"
+
+# Step 1: Fetch aircraft data
 url = "https://opensky-network.org/api/states/all"
 response = requests.get(url)
 data = response.json()
 
-now = datetime.utcnow()
-cutoff_time = now - timedelta(hours=24)
-points_filename = "flight_points.geojson"
-
-# Step 2: Load existing points for accumulation
+# Step 2: Load and trim existing points
 if os.path.exists(points_filename):
     with open(points_filename, "r") as f:
         existing_data = json.load(f)
-        existing_features = existing_data.get("features", [])
+        all_features = existing_data["features"]
 else:
-    existing_features = []
+    all_features = []
 
-# Step 3: Filter existing points to only those within the last 24 hours
-recent_features = []
-for feature in existing_features:
-    timestamp = feature["properties"].get("timestamp_iso")
+# Step 3: Only keep points from the last N hours
+def feature_time(feature):
     try:
-        ft = datetime.fromisoformat(timestamp)
-        if ft >= cutoff_time:
-            recent_features.append(feature)
+        return datetime.fromisoformat(feature["properties"]["timestamp_iso"])
     except Exception:
-        continue
+        return None
+all_features = [f for f in all_features if feature_time(f) and feature_time(f) >= cutoff_time]
 
-# Step 4: Add new points from current API call
+# Step 4: Append new points (from current fetch)
 for state in data.get("states", []):
-    lon = state[5]
-    lat = state[6]
+    lon, lat = state[5], state[6]
     if lon is not None and lat is not None:
-        time_position = state[3]
-        timestamp_iso = datetime.utcfromtimestamp(time_position).isoformat() if time_position else now.isoformat()
+        timestamp_iso = (
+            datetime.utcfromtimestamp(state[3]).isoformat()
+            if state[3] else now.isoformat()
+        )
         feature = {
             "type": "Feature",
-            "geometry": {
-                "type": "Point",
-                "coordinates": [lon, lat]
-            },
+            "geometry": {"type": "Point", "coordinates": [lon, lat]},
             "properties": {
                 "icao24": state[0],
-                "callsign": state[1].strip() if state[1] else "",
+                "callsign": (state[1] or "").strip(),
                 "origin_country": state[2],
-                "time_position": time_position,
+                "time_position": state[3],
                 "timestamp_iso": timestamp_iso,
-                "lon": lon,
-                "lat": lat,
                 "altitude": state[7]
             }
         }
-        recent_features.append(feature)
+        all_features.append(feature)
 
-# Step 5: Save all accumulated points for 24 hours as GeoJSON
-geojson_points = {
-    "type": "FeatureCollection",
-    "features": recent_features
-}
+# Step 5: Save the last 12 hours of point data
 with open(points_filename, "w") as f:
-    json.dump(geojson_points, f, indent=2)
-print(f"Saved {len(recent_features)} features to {points_filename}")
+    json.dump({"type": "FeatureCollection", "features": all_features}, f, indent=2)
+print(f"Saved {len(all_features)} features to {points_filename}")
 
-# Step 6: Create trajectory lines for each aircraft in the last 24 hours
-# Convert features into a DataFrame for grouping
+# Step 6: Create trajectories for last 12 hours
 df = pd.DataFrame([
     {
-        **f["properties"],
+        "icao24": f["properties"]["icao24"],
+        "timestamp_iso": f["properties"]["timestamp_iso"],
         "lon": f["geometry"]["coordinates"][0],
         "lat": f["geometry"]["coordinates"][1]
     }
-    for f in recent_features
+    for f in all_features
+    if f["geometry"]["coordinates"][0] is not None and f["geometry"]["coordinates"][1] is not None
 ])
 trajectories = []
 if not df.empty:
     for icao24, group in df.groupby("icao24"):
-        group = group.sort_values("time_position")
+        group = group.sort_values("timestamp_iso")
         if len(group) > 1:
             coords = list(zip(group["lon"], group["lat"]))
-            traj = LineString(coords)
-            trajectories.append({"icao24": icao24, "geometry": traj})
+            # Filter out weird verticals (optional)
+            coords = [
+                (lon, lat) for lon, lat in coords
+                if -90 <= lat <= 90 and -180 <= lon <= 180
+            ]
+            if len(coords) > 1:
+                traj = LineString(coords)
+                trajectories.append({
+                    "type": "Feature",
+                    "geometry": traj.__geo_interface__,
+                    "properties": {"icao24": icao24}
+                })
 
-# Step 7: Save trajectories (always create a valid GeoJSON file)
-traj_filename = "flight_trajectories.geojson"
-if trajectories:
-    gdf = gpd.GeoDataFrame(trajectories, crs="EPSG:4326")
-    gdf.to_file(traj_filename, driver="GeoJSON")
-    print(f"Trajectories saved as: {traj_filename}")
-else:
-    empty_geojson = {"type": "FeatureCollection", "features": []}
-    with open(traj_filename, "w") as f:
-        json.dump(empty_geojson, f, indent=2)
-    print("No trajectories to save yet.")
-
-print("Script completed successfully.")
+# Step 7: Save the trajectory lines for the last 12 hours
+with open(traj_filename, "w") as f:
+    json.dump({"type": "FeatureCollection", "features": trajectories}, f, indent=2)
+print(f"Saved {len(trajectories)} trajectories to {traj_filename}")
