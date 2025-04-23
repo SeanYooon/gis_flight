@@ -1,36 +1,32 @@
-# Aircraft GIS Visualization Project
+# Aircraft Movement GIS Visualization (24-Hour Rolling Data)
 
-## Overview
+## Project Overview
 
-This project demonstrates the collection, processing, and visualization of global flight position data from the OpenSky Network API. The workflow accumulates 24 hours of aircraft position data, prepares time-enabled GIS layers, and provides clear visualizations using ArcGIS Online — all without requiring a live data feed or paid cloud automation.
+This project automates the collection, processing, and visualization of aircraft movement data over a 24-hour rolling period using the OpenSky Network API and Python. The workflow results in two key GeoJSON files for ready demonstration in ArcGIS Online:
 
-## Features
+- **flight_points.geojson**: A time-enabled point dataset containing all aircraft positions observed over the latest 24 hours, each with a timestamp for temporal animation and heatmap analysis.
+- **flight_trajectories.geojson**: Line features representing the 24-hour movement trajectories of each individual aircraft, generated from the accumulated points.
 
-- **24-Hour Rolling Dataset:**  
-  The system accumulates and retains only the last 24 hours of aircraft positions, ensuring a manageable file size and showing a full day of flight activity for analysis and animation.
+Screenshots of the resulting maps are stored in the **`screenshots`** folder for inclusion in documentation or presentations.
 
-- **Time-Enabled and Trajectory Layers:**  
-  - `24h_flight_points.geojson`: Aircraft positions, each with a timestamp, suitable for time slider animation and heat map creation.
-  - `24h_flight_trajectories.geojson`: Trajectory lines for each aircraft, representing movement over the past day.
+## Data Processing Workflow
 
-- **Interactive GIS Visualization:**  
-  - Upload the GeoJSON files as hosted feature layers in ArcGIS Online.
-  - Enable the time slider on the points layer, allowing users to animate and explore movements through the 24-hour window.
-  - Style the map to show:
-    - **Heatmaps** when zoomed out (for regional/global density)
-    - **Points and trajectories** when zoomed in (for detail)
-    - **Pop-ups** with flight details for each point when clicked
+1. **Automated Data Updates**
+    - The Python script (`opensky_flights.py`) is scheduled via GitHub Actions to run every 30 minutes.
+    - Each run:
+        - Fetches live aircraft data from OpenSky,
+        - Appends new points to `flight_points.geojson`,
+        - Removes points older than 24 hours to keep the dataset current and manageable.
+        - Updates `flight_trajectories.geojson` to reflect only paths from the last 24 hours.
 
-## Workflow
-
-1. **Data Collection (Automated Script):**
-   - Python script collects new aircraft data every 30 minutes and appends it to the cumulative 24-hour dataset.
-   - Results are saved as GeoJSON files: `24h_flight_points.geojson` (points) and `24h_flight_trajectories.geojson` (lines).
-2. **Manual Demonstration Workflow:**  
-   - Download the latest GeoJSON files from the GitHub repository.
-   - Upload as hosted feature layers in ArcGIS Online.
-   - Enable time on the points layer (using `timestamp_iso`).
-   - Configure symbology/visibility for heatmaps and trajectories.
+2. **Manual Visualization Demonstration**
+    - After a full 24 hours, download the latest `flight_points.geojson` and `flight_trajectories.geojson` from your repository.
+    - Upload `flight_points.geojson` as a hosted feature layer in ArcGIS Online and enable the **time slider** using the `timestamp_iso` field.
+    - Upload `flight_trajectories.geojson` for path/line visualization.
+    - Style your web map:
+        - **Heatmap**: for aircraft density, visible when zoomed out.
+        - **Points & Trajectories**: for details, visible when zoomed in.
+    - Use the time slider to animate aircraft movement and density across the 24-hour window.
 
 ## Example Visualizations
 
@@ -41,35 +37,7 @@ This project demonstrates the collection, processing, and visualization of globa
 > [View the interactive time-enabled map on ArcGIS Online](https://www.arcgis.com/home/webmap/viewer.html?webmap=684cb8e26a814139ad05975ef523cbf2)  
 > *(If you receive a 403 error, copy and paste this link into a new browser tab.)*
 
-## How to Reproduce or Demonstrate
+## How to Run the Workflow
 
-1. Clone this repository and let the GitHub Actions workflow run for at least 24 hours to accumulate data.
-2. Download the `24h_flight_points.geojson` and `24h_flight_trajectories.geojson` files.
-3. In ArcGIS Online:
-    - Upload as hosted feature layers.
-    - Enable time using the `timestamp_iso` field on the points layer.
-    - Style layers for heatmap, points, and trajectories, using scale-dependent visibility.
-    - Use the time slider for animation.
-
-## Key Skills Demonstrated
-
-- Python scripting, REST API usage, and workflow automation
-- Geospatial data processing and time-enabled GIS analysis
-- Data visualization with ArcGIS Online (heatmap, time slider, trajectories)
-- Professional cartographic design with scale-dependent symbology
-
-## Notes
-
-- **No live feed required:** The demo uses a rolling 24-hour dataset, updated automatically by code and manually uploaded for each demonstration.
-- **ArcGIS Online limitation:** Time slider animation is only available on hosted feature layers, which do not auto-update from external URLs (see README for details).
-- **For best results:** Update the hosted feature layers with new datasets before each presentation/demo.
-
-## References
-
-- [OpenSky Network API](https://opensky-network.org/apidoc/rest.html)
-- [ArcGIS Online Feature Layer Documentation](https://doc.arcgis.com/en/arcgis-online/)
-- [GeoJSON Format](https://geojson.org/)
-
----
-
-*Created for GIS portfolio, analysis, and educational demonstration.*
+- The GitHub Actions workflow (`.github/workflows/update_geojson.yml`) automates running the Python script and updating the GeoJSON files.
+- You can also run the script locally:
